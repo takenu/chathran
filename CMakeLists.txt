@@ -75,3 +75,6 @@ set(USED_LIBS
 add_executable(test_Font src/test_Font.cpp)
 target_link_libraries(test_Font ${USED_LIBS})
 
+add_executable(chathran src/chathran.cpp)
+target_link_libraries(chathran ${USED_LIBS})
+

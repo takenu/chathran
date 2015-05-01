@@ -1,4 +1,4 @@
-# Based on http://www.openengine.dk/code/extensions/Assimp/FindAssimp.cmake.
+# Adapted from http://www.openengine.dk/code/extensions/Assimp/FindAssimp.cmake.
 # - Try to find tiny-game-engine
 # Once done this will define
 #
