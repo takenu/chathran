@@ -14,32 +14,29 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#pragma once
 
-#include <iostream>
-#include <exception>
+#include "interface/appl.hpp"
+#include "interface/render.hpp"
 
-#include "core/game.hpp"
-
-
-int main(int, char **)
+namespace ch
 {
-	ch::core::Game * game = 0;
-	try
+	namespace core
 	{
-		game = new ch::core::Game();
-	}
-	catch (std::exception &e)
-	{
-		std::cerr << "Application threw uncaught exception!" << std::endl;
-		return -1;
-	}
+		/** Take care of user input and user interface. */
+		class UIManager
+		{
+			private:
+				intf::ApplInterface * applInterface;
+				intf::RenderInterface * renderer;
+			public:
+				UIManager(intf::ApplInterface * _appl, intf::RenderInterface * _renderer) : applInterface(_appl), renderer(_renderer)
+				{
+				}
 
-	std::cout << " Freeing resources... " << std::endl;
-
-	delete game;
-	
-	std::cout << "Goodbye." << std::endl;
-	
-	return 0;
+				void update(double)
+				{
+				}
+		};
+	}
 }
-

@@ -72,9 +72,13 @@ set(USED_LIBS
               ${SDLTTF_LIBRARY}
               ${SDLNET_LIBRARY})
 
+file(GLOB CHATHRAN_SOURCES RELATIVE ${CHATHRAN_SOURCE_DIR}
+	src/core/*.cpp
+)
+
 add_executable(test_Font src/test_Font.cpp)
 target_link_libraries(test_Font ${USED_LIBS})
 
-add_executable(chathran src/chathran.cpp)
+add_executable(chathran src/chathran.cpp ${CHATHRAN_SOURCES})
 target_link_libraries(chathran ${USED_LIBS})
 

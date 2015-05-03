@@ -1,0 +1,4 @@
+Folder 'core' contents:
+
+Source files for core Chathran classes, which are general and manage the more
+specific parts of Chathran.

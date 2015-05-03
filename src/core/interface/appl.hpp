@@ -14,32 +14,28 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#pragma once
 
-#include <iostream>
-#include <exception>
+#include <tiny/os/sdlapplication.h>
 
-#include "core/game.hpp"
-
-
-int main(int, char **)
+namespace ch
 {
-	ch::core::Game * game = 0;
-	try
+	namespace core
 	{
-		game = new ch::core::Game();
-	}
-	catch (std::exception &e)
-	{
-		std::cerr << "Application threw uncaught exception!" << std::endl;
-		return -1;
-	}
+		namespace intf
+		{
+			class ApplInterface
+			{
+				private:
+				public:
+					ApplInterface(void) {}
+					~ApplInterface(void) {}
 
-	std::cout << " Freeing resources... " << std::endl;
-
-	delete game;
-	
-	std::cout << "Goodbye." << std::endl;
-	
-	return 0;
+					virtual bool isRunning(void) const = 0;
+					virtual int getScreenWidth(void) const = 0;
+					virtual int getScreenHeight(void) const = 0;
+					virtual tiny::os::MouseState getMouseState(const bool &) const = 0;
+			};
+		}
+	}
 }
-
