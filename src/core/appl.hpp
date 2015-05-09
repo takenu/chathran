@@ -38,6 +38,11 @@ namespace ch
 				{
 				}
 
+				~ApplManager(void)
+				{
+					delete application;
+				}
+
 				virtual bool isRunning(void) const { return application->isRunning(); }
 				virtual int getScreenWidth(void) const { return application->getScreenWidth(); }
 				virtual int getScreenHeight(void) const { return application->getScreenHeight(); }

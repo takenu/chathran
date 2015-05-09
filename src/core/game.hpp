@@ -54,7 +54,6 @@ namespace ch
 
 				~Game(void)
 				{
-					delete application;
 				}
 
 				void updateCamera(double dt)

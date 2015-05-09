@@ -15,6 +15,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <cassert>
+
 #include <config.h>
 
 #include <tiny/math/vec.h>
@@ -155,5 +157,43 @@ void VegManager::update(double )
 			tiledForest->addTile(tilepos,farTrees);
 		}
 		tiledForest->recalculateLOD(renderer->getCameraPosition());
+	}
+}
+
+void VegManager::addLOD(std::string name, float _tileSize, std::string meshLoc, std::string difTexLoc, bool alphaChannel, std::string normTexLoc, int maxObjects, float maxRange)
+{
+	if(difTexLoc == "") { std::cerr << " Warning: VegManager::addLOD() doesn't have a texture for '"<<name<<"'. Skipping object creation. "<<std::endl; return; }
+	if( hordemap.find(name) == hordemap.end() ) hordemap.insert( std::make_pair(name, new veg::VegetationHorde(name, _tileSize) ) );
+	veg::VegetationHorde * vegHorde = hordemap.find(name)->second;
+	tiny::draw::RGBTexture2D * difTex = 0;
+	tiny::draw::RGBATexture2D * difTexAlpha = 0;
+	tiny::draw::RGBTexture2D * normTex = 0;
+	if(alphaChannel) difTexAlpha = new tiny::draw::RGBATexture2D(tiny::img::io::readImage(DATA_DIRECTORY + difTexLoc));
+	else difTex = new tiny::draw::RGBTexture2D(tiny::img::io::readImage(DATA_DIRECTORY + difTexLoc));
+	assert(difTex || difTexAlpha);
+	if(normTexLoc != "") normTex = new tiny::draw::RGBTexture2D(tiny::img::io::readImage(DATA_DIRECTORY + normTexLoc));
+	if(meshLoc != "")
+	{
+		tiny::draw::StaticMeshHorde * mesh = new tiny::draw::StaticMeshHorde(tiny::mesh::io::readStaticMesh(DATA_DIRECTORY + "mesh/tree0_trunk.obj"), maxNrHighDetailTrees);
+		assert(mesh);
+		mesh->setDiffuseTexture(*difTex);
+		if(normTex) mesh->setNormalTexture(*normTex);
+		renderer->addWorldRenderable(mesh);
+		if(alphaChannel) vegHorde->addLOD(maxObjects, maxRange, mesh, difTexAlpha, normTex);
+		else vegHorde->addLOD(maxObjects, maxRange, mesh, difTex, normTex);
+	}
+	else
+	{
+		tiny::draw::WorldIconHorde * icon = new tiny::draw::WorldIconHorde(maxNrLowDetailTrees, false);
+		assert(icon);
+//		if(normTex) icon->setNormalTexture(*normTex);
+		if(alphaChannel)
+		{
+			icon->setIconTexture(*difTexAlpha);
+			vegHorde->addLOD(maxObjects, maxRange, icon, difTexAlpha, normTex);
+			renderer->addWorldRenderable(icon);
+		}
+//		else vegHorde->addLOD(maxObjects, maxRange, icon, difTex, normTex);
+		else std::cerr << " Warning: VegManager::addLOD() found icon texture without alpha channel, cannot process. "<<std::endl;
 	}
 }

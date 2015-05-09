@@ -26,13 +26,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "interface/render.hpp"
 #include "interface/terrain.hpp"
 
+#include "../veg/drawpar.hpp"
+
 namespace ch
 {
 	namespace core
 	{
-		/** Take care of user input and user interface. */
+
+		/** Take care of management of vegetation objects. */
 		class VegManager
 		{
+				/** A map to contain all VegetationHordes, organised by unique name. */
+				std::map<std::string, veg::VegetationHorde*> hordemap;
+				/** Add a LOD for a type of vegetation. */
+				void addLOD(std::string name, float tileSize, std::string meshLoc, std::string difTexLoc, bool alphaChannel, std::string normTexLoc, int maxObjects, float maxRange);
+				/** Add all LODs to their TiledHordes. */
+				void addToTiledHorde(void) { for(std::map<std::string, veg::VegetationHorde*>::iterator it = hordemap.begin(); it != hordemap.end(); it++) it->second->addToTiledHorde(); }
 			private:
 				intf::ApplInterface * applInterface;
 				intf::RenderInterface * renderer;
