@@ -27,11 +27,12 @@ find_package(SDL_image REQUIRED)
 find_package(SDL_ttf REQUIRED)
 find_package(SDL_net REQUIRED)
 find_package(Assimp REQUIRED)
+find_package(Lua REQUIRED)
 find_package(Tinygame REQUIRED)
 
 configure_file(config.h.cmake ${CMAKE_BINARY_DIR}/config.h)
 
-set(CMAKE_CXX_FLAGS "-O2 -g -Wall -Wextra -Wshadow -ansi -pedantic")
+set(CMAKE_CXX_FLAGS "-O2 -g -Wall -Wextra -Wshadow -ansi -pedantic -std=c++11 -ldl") # ldl for lua loadlib.c which uses it; c++11 for Selene
 #set(CMAKE_CXX_FLAGS "-O3 -Wall -DNDEBUG")
 set(CMAKE_EXE_LINKER_FLAGS "-lrt")
 #set(CMAKE_VERBOSE_MAKEFILE true)
@@ -54,6 +55,8 @@ include_directories(${SDL_TTF_INCLUDE_DIR})
 link_directories(${SDL_TTF_LIBRARY_DIR})
 include_directories(${SDL_NET_INCLUDE_DIR})
 link_directories(${SDL_NET_LIBRARY_DIR})
+include_directories(${LUA_INCLUDE_DIR})
+link_directories(${LUA_LIBRARY_DIR})
 include_directories(${TINYGAME_INCLUDE_DIR})
 link_directories(${TINYGAME_LIBRARY_DIR})
 include_directories(${CHATHRAN_SOURCE_DIR})
@@ -62,6 +65,7 @@ include_directories(${CHATHRAN_SOURCE_DIR}/src/)
 
 set(USED_LIBS 
               ${TINYGAME_LIBRARIES} # MUST be first, otherwise tinygame's calls to the below libraries don't get linked!
+              ${LUA_LIBRARY}
               ${ASSIMP_LIBRARIES}
               ${OPENGL_LIBRARY}
               ${GLEW_LIBRARY}
@@ -74,6 +78,8 @@ set(USED_LIBS
 
 file(GLOB CHATHRAN_SOURCES RELATIVE ${CHATHRAN_SOURCE_DIR}
 	src/core/*.cpp
+	src/core/interface/*.cpp
+	src/veg/*.cpp
 )
 
 add_executable(test_Font src/test_Font.cpp)
