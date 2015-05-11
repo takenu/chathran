@@ -16,7 +16,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <functional>
+
 #include <tiny/math/vec.h>
+#include <tiny/draw/texture2d.h>
 
 namespace ch
 {
@@ -47,6 +50,12 @@ namespace ch
 			  */
 			class TerrainInterface
 			{
+				private:
+					float getHeightIndirect(tiny::vec2 pos);
+					float getHeightFromTexture(tiny::vec2 pos)
+					{
+						return sampleTextureBilinear(*heightTexture, scale, pos).x;
+					}
 				protected:
 					tiny::draw::FloatTexture2D * heightTexture; /**< The height texture can be in the interface (rather than the TerrainManager) such that we don't need to virtualize getHeight(). */
 					const tiny::vec2 scale;
@@ -54,11 +63,10 @@ namespace ch
 					TerrainInterface(void) : heightTexture(0), scale(7.0f,7.0f) {}
 					~TerrainInterface(void) {}
 
-					float getHeight(tiny::vec3 pos) { return getHeight( tiny::vec2(pos.x,pos.z) ); }
-					float getHeight(tiny::vec2 pos)
-					{
-						return sampleTextureBilinear(*heightTexture, scale, pos).x;
-					}
+					float getHeight(tiny::vec3 pos) { return getHeightFromTexture( tiny::vec2(pos.x,pos.z) ); }
+					float getHeight(tiny::vec2 pos) { return getHeightFromTexture( pos ); }
+
+					std::function<float(tiny::vec2)> getHeightFunc(void);
 			};
 		} // end namespace intf
 	} // end namespace core

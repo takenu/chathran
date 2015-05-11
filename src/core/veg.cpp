@@ -16,6 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <cassert>
+#include <functional>
 
 #include <config.h>
 
@@ -23,177 +24,75 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <tiny/mesh/io/staticmesh.h>
 #include <tiny/img/io/image.h>
 
+#include "../tools/selene.h"
+
 #include "veg.hpp"
 
 using namespace ch::core;
+using namespace std::placeholders; // for std::bind with arguments
 
-//Function to populate a specific tile with trees.
-//template<typename TextureType1, typename TextureType2>
-//int plantTreesTiled(const TextureType1 &heightTexture, const TextureType2 &attributeTexture, const tiny::vec2 &scale,
-int plantTreesTiled(intf::TerrainInterface * terrain,
-			   const tiny::vec3 &origin, float tileSize, const int &maxNrTrees,
-			   std::vector<tiny::draw::StaticMeshInstance> &highDetailInstances, std::vector<tiny::draw::WorldIconInstance> &lowDetailInstances, std::vector<tiny::vec3> &positions)
+float VegManager::getHeight(tiny::vec2 pos)
 {
-	int nrTrees = 0;
-	
-	highDetailInstances.clear();
-	lowDetailInstances.clear();
-	positions.clear();
-	
-	if (maxNrTrees <= 0)
-	{
-		std::cerr << "Warning: Not placing any trees!" << std::endl;
-		return 0;
-	}
-
-	highDetailInstances.reserve(maxNrTrees);
-	lowDetailInstances.reserve(maxNrTrees);
-	positions.reserve(maxNrTrees);
-	
-	for (int i = 0; i < maxNrTrees; ++i)
-	{
-		//Determine the random spot where we want to place a tree.
-		const tiny::vec2 treePlanePosition = tiny::randomVec2(0.5*tileSize) + tiny::vec2(origin.x+0.5*tileSize, origin.z+0.5*tileSize);
-		
-		//Are we going to place a tree here?
-//		const float placeProbability = sampleTextureBilinear(attributeTexture, scale, treePlanePosition).x;
-		const float placeProbability = 0.0f;
-		
-		if (placeProbability <= 0.5f/255.0f)
-		{
-			//Determine height.
-//			const tiny::vec3 treePosition = tiny::vec3(treePlanePosition.x, sampleTextureBilinear(heightTexture, scale, treePlanePosition).x, treePlanePosition.y);
-			const tiny::vec3 treePosition = tiny::vec3(treePlanePosition.x, terrain->getHeight(treePlanePosition), treePlanePosition.y);
-			
-			highDetailInstances.push_back(tiny::draw::StaticMeshInstance(tiny::vec4(treePosition.x, treePosition.y, treePosition.z, 1.0f),
-																   tiny::vec4(0.0f, 0.0f, 0.0f, 1.0f)));
-			lowDetailInstances.push_back(tiny::draw::WorldIconInstance(tiny::vec4(treePosition.x, treePosition.y + 4.0f, treePosition.z, 1.0f),
-																 tiny::vec2(4.0f, 4.0f),
-																 tiny::vec4(0.0f, 0.0f, 1.0f, 1.0f),
-																 tiny::vec4(1.0f, 1.0f, 1.0f, 1.0f)));
-			positions.push_back(treePosition);
-			++nrTrees;
-		}
-	}
-
-	return nrTrees;
-}
-
-void VegManager::setup(void)
-{
-	//Create a forest by using the attribute texture, only on the zoomed-in terrain.
-	//Read and paint the tree trunks.
-	treeTrunkMeshes = new tiny::draw::StaticMeshHorde(tiny::mesh::io::readStaticMesh(DATA_DIRECTORY + "mesh/tree0_trunk.obj"), maxNrHighDetailTrees);
-	treeTrunkDiffuseTexture = new tiny::draw::RGBTexture2D(tiny::img::io::readImage(DATA_DIRECTORY + "img/veg/tree0_trunk.png"));
-	treeTrunkNormalTexture = new tiny::draw::RGBTexture2D(tiny::img::io::readImage(DATA_DIRECTORY + "img/veg/tree0_trunk_normal.png"));
-	treeTrunkMeshes->setDiffuseTexture(*treeTrunkDiffuseTexture);
-	treeTrunkMeshes->setNormalTexture(*treeTrunkNormalTexture);
-	
-	//Read and paint the tree leaves.
-	treeLeavesMeshes = new tiny::draw::StaticMeshHorde(tiny::mesh::io::readStaticMesh(DATA_DIRECTORY + "mesh/tree0_leaves.obj"), maxNrHighDetailTrees);
-	treeLeavesDiffuseTexture = new tiny::draw::RGBATexture2D(tiny::img::io::readImage(DATA_DIRECTORY + "img/veg/tree0_leaves.png"));
-	treeLeavesMeshes->setDiffuseTexture(*treeLeavesDiffuseTexture);
-	
-	//Read and paint the sprites for far-away trees.
-	treeSprites = new tiny::draw::WorldIconHorde(maxNrLowDetailTrees, false);
-	treeSpriteTexture = new tiny::draw::RGBATexture2D(tiny::img::io::readImage(DATA_DIRECTORY + "img/veg/tree0_sprite.png"));
-	treeSprites->setIconTexture(*treeSpriteTexture);
-
-	// Create a tiled forest.
-	tiledForest = new tiny::draw::TiledHorde(tileSize, "Forest");
-	std::vector<tiny::draw::StaticMeshHorde*> mediumTreeMeshes;
-	std::vector<tiny::draw::WorldIconHorde*> farTreeMeshes;
-	mediumTreeMeshes.push_back(treeTrunkMeshes);
-	mediumTreeMeshes.push_back(treeLeavesMeshes);
-	farTreeMeshes.push_back(treeSprites);
-	
-	tiledForest->addLOD(mediumTreeMeshes, treeHighDetailRadius);
-	tiledForest->addLOD(farTreeMeshes, treeLowDetailRadius);
-
-	renderer->addWorldRenderable(treeTrunkMeshes);
-	renderer->addWorldRenderable(treeLeavesMeshes);
-	renderer->addWorldRenderable(treeSprites);
-}
-
-void VegManager::cleanup(void)
-{
-	delete treeTrunkMeshes;
-	delete treeLeavesMeshes;
-	delete treeSprites;
-	delete treeTrunkDiffuseTexture;
-	delete treeTrunkNormalTexture;
-	delete treeLeavesDiffuseTexture;
-	delete treeSpriteTexture;	
+	return terrain->getHeight(pos);
 }
 
 void VegManager::update(double )
 {
 	if (renderer->lodUpdates())
 	{
-		tiledForest->removeOldTiles(renderer->getCameraPosition());
-		tiledForest->listNewTiles(renderer->getCameraPosition());
-
-		tiny::vec3 tilepos;
-		while(tiledForest->getNewStaticMeshTile(tilepos))
+		for(std::map<std::string, veg::VegetationTiledHorde*>::iterator it = hordemap.begin(); it != hordemap.end(); it++)
 		{
-			std::vector<tiny::draw::StaticMeshInstance> nearTrees;
-			std::vector<tiny::draw::WorldIconInstance> farTrees;
-			std::vector<tiny::vec3> tmpTreePositions;
-//			plantTreesTiled(*terrainHeightTexture, *terrainAttributeTexture, terrainScale,
-			plantTreesTiled(terrain,
-					   tilepos, tileSize, 150,
-					   nearTrees, farTrees, tmpTreePositions);
-			tiledForest->addTile(tilepos,nearTrees);
+			it->second->update(renderer->getCameraPosition(), terrain->getHeightFunc());
 		}
-		while(tiledForest->getNewIconTile(tilepos))
-		{
-			std::vector<tiny::draw::StaticMeshInstance> nearTrees;
-			std::vector<tiny::draw::WorldIconInstance> farTrees;
-			std::vector<tiny::vec3> tmpTreePositions;
-//			plantTreesTiled(*terrainHeightTexture, *terrainAttributeTexture, terrainScale,
-			plantTreesTiled(terrain,
-					   tilepos, tileSize, 150,
-					   nearTrees, farTrees, tmpTreePositions);
-			tiledForest->addTile(tilepos,farTrees);
-		}
-		tiledForest->recalculateLOD(renderer->getCameraPosition());
 	}
 }
 
-void VegManager::addLOD(std::string name, float _tileSize, std::string meshLoc, std::string difTexLoc, bool alphaChannel, std::string normTexLoc, int maxObjects, float maxRange)
+void VegManager::addLOD(std::string name, double _tileSize, std::string meshLoc, std::string difTexLoc, bool alphaChannel, std::string normTexLoc, int maxObjects, double maxRange)
 {
+	std::cout << " call: name= "<<name<<" tilesize= "<<_tileSize<<" mesh= "<<meshLoc<<" diftex= "<<difTexLoc<<" normtex= "<<normTexLoc<<std::endl;
 	if(difTexLoc == "") { std::cerr << " Warning: VegManager::addLOD() doesn't have a texture for '"<<name<<"'. Skipping object creation. "<<std::endl; return; }
-	if( hordemap.find(name) == hordemap.end() ) hordemap.insert( std::make_pair(name, new veg::VegetationHorde(name, _tileSize) ) );
-	veg::VegetationHorde * vegHorde = hordemap.find(name)->second;
+	if(meshLoc == "" && !alphaChannel) { std::cerr << " Warning: VegManager::addLOD() found icon texture without alpha channel, cannot process. "<<std::endl; return; }
+	if( hordemap.find(name) == hordemap.end() ) hordemap.insert( std::make_pair(name, new veg::VegetationTiledHorde(name, _tileSize) ) );
+	veg::VegetationTiledHorde * vegHorde = hordemap.find(name)->second;
 	tiny::draw::RGBTexture2D * difTex = 0;
 	tiny::draw::RGBATexture2D * difTexAlpha = 0;
 	tiny::draw::RGBTexture2D * normTex = 0;
-	if(alphaChannel) difTexAlpha = new tiny::draw::RGBATexture2D(tiny::img::io::readImage(DATA_DIRECTORY + difTexLoc));
-	else difTex = new tiny::draw::RGBTexture2D(tiny::img::io::readImage(DATA_DIRECTORY + difTexLoc));
+	if(alphaChannel) difTexAlpha = new tiny::draw::RGBATexture2D(tiny::img::io::readImage(DATA_DIRECTORY + "img/" + difTexLoc));
+	else difTex = new tiny::draw::RGBTexture2D(tiny::img::io::readImage(DATA_DIRECTORY + "img/" + difTexLoc));
 	assert(difTex || difTexAlpha);
-	if(normTexLoc != "") normTex = new tiny::draw::RGBTexture2D(tiny::img::io::readImage(DATA_DIRECTORY + normTexLoc));
+	if(normTexLoc != "") normTex = new tiny::draw::RGBTexture2D(tiny::img::io::readImage(DATA_DIRECTORY + "img/" + normTexLoc));
 	if(meshLoc != "")
 	{
-		tiny::draw::StaticMeshHorde * mesh = new tiny::draw::StaticMeshHorde(tiny::mesh::io::readStaticMesh(DATA_DIRECTORY + "mesh/tree0_trunk.obj"), maxNrHighDetailTrees);
+		tiny::draw::StaticMeshHorde * mesh = new tiny::draw::StaticMeshHorde(tiny::mesh::io::readStaticMesh(DATA_DIRECTORY + "mesh/" + meshLoc), maxObjects);
 		assert(mesh);
-		mesh->setDiffuseTexture(*difTex);
 		if(normTex) mesh->setNormalTexture(*normTex);
 		renderer->addWorldRenderable(mesh);
-		if(alphaChannel) vegHorde->addLOD(maxObjects, maxRange, mesh, difTexAlpha, normTex);
-		else vegHorde->addLOD(maxObjects, maxRange, mesh, difTex, normTex);
+		if(alphaChannel)
+		{
+			mesh->setDiffuseTexture(*difTexAlpha);
+			vegHorde->addLOD(maxObjects, maxRange, mesh, difTexAlpha, normTex);
+		}
+		else
+		{
+			mesh->setDiffuseTexture(*difTex);
+			vegHorde->addLOD(maxObjects, maxRange, mesh, difTex, normTex);
+		}
 	}
 	else
 	{
-		tiny::draw::WorldIconHorde * icon = new tiny::draw::WorldIconHorde(maxNrLowDetailTrees, false);
-		assert(icon);
 //		if(normTex) icon->setNormalTexture(*normTex);
-		if(alphaChannel)
-		{
-			icon->setIconTexture(*difTexAlpha);
-			vegHorde->addLOD(maxObjects, maxRange, icon, difTexAlpha, normTex);
-			renderer->addWorldRenderable(icon);
-		}
+		assert(difTexAlpha);
+		tiny::draw::WorldIconHorde * icon = new tiny::draw::WorldIconHorde(maxObjects, false);
+		assert(icon);
+		icon->setIconTexture(*difTexAlpha);
+		vegHorde->addLOD(maxObjects, maxRange, icon, difTexAlpha, normTex);
+		renderer->addWorldRenderable(icon);
 //		else vegHorde->addLOD(maxObjects, maxRange, icon, difTex, normTex);
-		else std::cerr << " Warning: VegManager::addLOD() found icon texture without alpha channel, cannot process. "<<std::endl;
 	}
+}
+
+void VegManager::registerLuaFunctions(sel::State & luaState)
+{
+	luaState["veg"].SetObj(*this,
+			"loadTiledVegObject", &VegManager::addLOD);
 }

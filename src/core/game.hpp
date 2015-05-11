@@ -18,6 +18,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <tiny/os/sdlapplication.h>
 
+#include "../tools/selene.h" // for Selene, C++11 Lua interface library. Include before Lua (it defines compatibility with Lua 5.2)
+
+extern "C" {
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+}
+
 #include "appl.hpp"
 #include "ui.hpp"
 #include "render.hpp"
@@ -40,6 +48,8 @@ namespace ch
 				TerrainManager terrainManager; /**< Manage terrain and heightmap. */
 				VegManager vegManager; /**< Manage terrain and heightmap. */
 				SkyManager skyManager; /**< Manage sky and weather. */
+
+				sel::State luaState; /**< A Lua state. */
 			public:
 				Game(void) :
 					applManager(),
@@ -47,13 +57,33 @@ namespace ch
 					uiManager(static_cast<intf::ApplInterface*>(&applManager),static_cast<intf::RenderInterface*>(&renderManager)),
 					terrainManager(static_cast<intf::RenderInterface*>(&renderManager)),
 					vegManager(static_cast<intf::ApplInterface*>(&applManager),static_cast<intf::RenderInterface*>(&renderManager),static_cast<intf::TerrainInterface*>(&terrainManager)),
-					skyManager(static_cast<intf::RenderInterface*>(&renderManager))
+					skyManager(static_cast<intf::RenderInterface*>(&renderManager)),
+					luaState(true)
 				{
+					registerLuaFunctions();
+					composeWorld();
 					mainLoop();
+				}
+
+				/** Register functions that Lua can call. Note that due to Chathran's O-O nature the functions to be registered are not the usual static functions
+				  * but instead member functions of instantiated classes. This means that during the lifetime of Lua these instantiations must not be deleted.
+				  * Therefore it's probably best to only register member functions of the Manager instances of the Game class. */
+				void registerLuaFunctions(void)
+				{
+					vegManager.registerLuaFunctions(luaState);
 				}
 
 				~Game(void)
 				{
+				}
+
+				/** Initialize the world using Lua scripts. */
+				void composeWorld(void)
+				{
+					luaState.Load(DATA_DIRECTORY + "lua/start.lua");
+					luaState["start"]();
+
+					vegManager.addToTiledHorde(); // add all LODs to their TiledHorde's
 				}
 
 				void updateCamera(double dt)
