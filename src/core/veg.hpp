@@ -44,8 +44,6 @@ namespace ch
 
 				/** A map to contain all VegetationTiledHordes, organised by unique name. */
 				std::map<std::string, veg::VegetationTiledHorde*> hordemap;
-
-				float getHeight(tiny::vec2 pos);
 			public:
 				VegManager(intf::ApplInterface * _applInterface, intf::RenderInterface * _renderer, intf::TerrainInterface * _terrain) :
 					applInterface(_applInterface),

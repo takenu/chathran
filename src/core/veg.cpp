@@ -31,11 +31,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 using namespace ch::core;
 using namespace std::placeholders; // for std::bind with arguments
 
-float VegManager::getHeight(tiny::vec2 pos)
-{
-	return terrain->getHeight(pos);
-}
-
 void VegManager::update(double )
 {
 	if (renderer->lodUpdates())
