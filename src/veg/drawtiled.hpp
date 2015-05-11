@@ -16,6 +16,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #pragma once
 
+#include <functional>
+
 #include <tiny/draw/texture2d.h>
 #include <tiny/draw/staticmesh.h>
 #include <tiny/draw/staticmeshhorde.h>
@@ -48,7 +50,7 @@ namespace ch
 
 		/** A class for describing a single LOD of a Vegetation type. */
 		template <typename MeshType>
-		class VegetationLOD
+		class VegetationTiledLod
 		{
 			private:
 			public:
@@ -58,7 +60,7 @@ namespace ch
 				std::vector< VegetationLodComponent<MeshType, tiny::draw::RGBTexture2D> > lodComponents;
 				std::vector< VegetationLodComponent<MeshType, tiny::draw::RGBATexture2D> > lodComponentsAlpha;
 
-				VegetationLOD(const int & _mor, const float & _mr) : maxObjectsRendered(_mor), maxRadius(_mr), addedToTiledHorde(false) {}
+				VegetationTiledLod(const int & _mor, const float & _mr) : maxObjectsRendered(_mor), maxRadius(_mr), addedToTiledHorde(false) {}
 
 				void addLodComponent(MeshType * _mesh, tiny::draw::RGBTexture2D * _dt, tiny::draw::RGBTexture2D * _nt)
 				{ lodComponents.push_back( VegetationLodComponent<MeshType, tiny::draw::RGBTexture2D>(_mesh,_dt,_nt) ); }
@@ -73,6 +75,7 @@ namespace ch
 					for(unsigned int i = 0; i < lodComponents.size(); i++) meshes.push_back(lodComponents[i].mesh);
 					for(unsigned int i = 0; i < lodComponentsAlpha.size(); i++) meshes.push_back(lodComponentsAlpha[i].mesh);
 					tiledHorde->addLOD(meshes, maxRadius);
+					addedToTiledHorde = true;
 				}
 
 				void freeComponents(void)
@@ -80,27 +83,31 @@ namespace ch
 					for(unsigned int i = 0; i < lodComponents.size(); i++) lodComponents[i].freeAll();
 					for(unsigned int i = 0; i < lodComponentsAlpha.size(); i++) lodComponentsAlpha[i].freeAll();
 				}
+
+				/** Calculate the max allowed density of this LOD. */
+				float maxDensity(void) { return maxObjectsRendered / (0.25 * 3.14159 * maxRadius * maxRadius); }
 		};
 
 		/** A base class for any horde-based Vegetation type. */
-		class VegetationHorde
+		class VegetationTiledHorde
 		{
 			private:
-				// Do not copy construct or assign: we destroy the tiledHorde and all LODs in our destructor
-				VegetationHorde(const VegetationHorde &);
-				VegetationHorde & operator= (const VegetationHorde &);
-			public:
 				tiny::draw::TiledHorde * tiledHorde;
+				const float tileSize;
 
-				std::map<float, VegetationLOD<tiny::draw::StaticMeshHorde> > meshLod;
-				std::map<float, VegetationLOD<tiny::draw::WorldIconHorde> > iconLod;
+				// Do not copy construct or assign: we destroy the tiledHorde and all LODs in our destructor
+				VegetationTiledHorde(const VegetationTiledHorde &);
+				VegetationTiledHorde & operator= (const VegetationTiledHorde &);
+			public:
+				std::map<float, VegetationTiledLod<tiny::draw::StaticMeshHorde> > meshLod;
+				std::map<float, VegetationTiledLod<tiny::draw::WorldIconHorde> > iconLod;
 
-				VegetationHorde(std::string _name, const float & _tileSize) : tiledHorde(new tiny::draw::TiledHorde(_tileSize, _name)) {}
-				~VegetationHorde(void)
+				VegetationTiledHorde(std::string _name, const float & _tileSize) : tiledHorde(new tiny::draw::TiledHorde(_tileSize, _name)), tileSize(_tileSize) {}
+				~VegetationTiledHorde(void)
 				{
 					delete tiledHorde;
-					for(std::map<float,VegetationLOD<tiny::draw::StaticMeshHorde> >::iterator it = meshLod.begin(); it != meshLod.end(); it++) it->second.freeComponents();
-					for(std::map<float,VegetationLOD<tiny::draw::WorldIconHorde> >::iterator it = iconLod.begin(); it != iconLod.end(); it++) it->second.freeComponents();
+					for(std::map<float,VegetationTiledLod<tiny::draw::StaticMeshHorde> >::iterator it = meshLod.begin(); it != meshLod.end(); it++) it->second.freeComponents();
+					for(std::map<float,VegetationTiledLod<tiny::draw::WorldIconHorde> >::iterator it = iconLod.begin(); it != iconLod.end(); it++) it->second.freeComponents();
 					meshLod.clear();
 					iconLod.clear();
 				}
@@ -108,21 +115,32 @@ namespace ch
 				template <typename DiffuseTexType>
 				void addLOD(const int & _mor, const float & _mr, tiny::draw::StaticMeshHorde * _mesh, DiffuseTexType * _dt, tiny::draw::RGBTexture2D * _nt = 0)
 				{
-					if(meshLod.find(_mr) == meshLod.end()) meshLod.insert( std::make_pair(_mr, VegetationLOD<tiny::draw::StaticMeshHorde>(_mor, _mr) ) );
+					if(meshLod.find(_mr) == meshLod.end()) meshLod.insert( std::make_pair(_mr, VegetationTiledLod<tiny::draw::StaticMeshHorde>(_mor, _mr) ) );
 					meshLod.find(_mr)->second.addLodComponent(_mesh, _dt, _nt);
 				}
 				template <typename DiffuseTexType>
 				void addLOD(const int & _mor, const float & _mr, tiny::draw::WorldIconHorde * _mesh, DiffuseTexType * _dt, tiny::draw::RGBTexture2D * _nt = 0)
 				{
-					if(iconLod.find(_mr) == iconLod.end()) iconLod.insert( std::make_pair(_mr, VegetationLOD<tiny::draw::WorldIconHorde>(_mor, _mr) ) );
+					if(iconLod.find(_mr) == iconLod.end()) iconLod.insert( std::make_pair(_mr, VegetationTiledLod<tiny::draw::WorldIconHorde>(_mor, _mr) ) );
 					iconLod.find(_mr)->second.addLodComponent(_mesh, _dt, _nt);
 				}
 
 				void addToTiledHorde(void)
 				{
-					for(std::map<float,VegetationLOD<tiny::draw::StaticMeshHorde> >::iterator it = meshLod.begin(); it != meshLod.end(); it++) it->second.addToTiledHorde(tiledHorde);
-					for(std::map<float,VegetationLOD<tiny::draw::WorldIconHorde> >::iterator it = iconLod.begin(); it != iconLod.end(); it++) it->second.addToTiledHorde(tiledHorde);
+					for(std::map<float,VegetationTiledLod<tiny::draw::StaticMeshHorde> >::iterator it = meshLod.begin(); it != meshLod.end(); it++) it->second.addToTiledHorde(tiledHorde);
+					for(std::map<float,VegetationTiledLod<tiny::draw::WorldIconHorde> >::iterator it = iconLod.begin(); it != iconLod.end(); it++) it->second.addToTiledHorde(tiledHorde);
 				}
+
+				/** Calculate the max allowed density for vegetation placement. (Any higher density could result in exceeding the permissible max number of instances rendered at one or more LODs.) */
+				float maxDensity(void)
+				{
+					float md = 1e6;
+					for(std::map<float,VegetationTiledLod<tiny::draw::StaticMeshHorde> >::iterator it = meshLod.begin(); it != meshLod.end(); it++) md = std::min(md, it->second.maxDensity());
+					for(std::map<float,VegetationTiledLod<tiny::draw::WorldIconHorde> >::iterator it = iconLod.begin(); it != iconLod.end(); it++) md = std::min(md, it->second.maxDensity());
+					return md;
+				}
+
+				void update(const tiny::vec3 & cameraPosition, std::function<float(tiny::vec2)> getHeight);
 		};
 	}
 }
