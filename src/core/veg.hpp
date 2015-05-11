@@ -45,31 +45,12 @@ namespace ch
 				/** A map to contain all VegetationTiledHordes, organised by unique name. */
 				std::map<std::string, veg::VegetationTiledHorde*> hordemap;
 
-/*				tiny::draw::TiledHorde * tiledForest;
-				const float tileSize;
-
-				const int maxNrHighDetailTrees;
-				const int maxNrLowDetailTrees;
-				const float treeHighDetailRadius;
-				const float treeLowDetailRadius;
-				tiny::draw::StaticMeshHorde *treeTrunkMeshes;
-				tiny::draw::StaticMeshHorde *treeLeavesMeshes;
-				tiny::draw::WorldIconHorde *treeSprites;
-				tiny::draw::RGBTexture2D *treeTrunkDiffuseTexture;
-				tiny::draw::RGBTexture2D *treeTrunkNormalTexture;
-				tiny::draw::RGBATexture2D *treeLeavesDiffuseTexture;
-				tiny::draw::RGBATexture2D *treeSpriteTexture; */
-
 				float getHeight(tiny::vec2 pos);
 			public:
 				VegManager(intf::ApplInterface * _applInterface, intf::RenderInterface * _renderer, intf::TerrainInterface * _terrain) :
 					applInterface(_applInterface),
 					renderer(_renderer),
-					terrain(_terrain) /*,
-					tiledForest(0), tileSize(50.0f),
-					maxNrHighDetailTrees(11024), maxNrLowDetailTrees(132768), treeHighDetailRadius(150.0f), treeLowDetailRadius(1000.0f),
-					treeTrunkMeshes(0), treeLeavesMeshes(0), treeSprites(0),
-					treeTrunkDiffuseTexture(0), treeTrunkNormalTexture(0), treeLeavesDiffuseTexture(0), treeSpriteTexture(0)*/
+					terrain(_terrain)
 				{
 				}
 
