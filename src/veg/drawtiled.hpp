@@ -29,16 +29,16 @@ namespace ch
 	namespace veg
 	{
 		/** A class for describing a single mesh component of a LOD. The diffuse can be either rgb or rgba, but not both. */
-		template <typename MeshType, typename DiffuseTexType>
+		template <typename MeshType>
 		class VegetationLodComponent
 		{
 			private:
 			public:
 				MeshType * mesh;
-				DiffuseTexType * diffuseTexture;
+				tiny::draw::TextureInterface * diffuseTexture;
 				tiny::draw::RGBTexture2D * normalTexture;
 
-				VegetationLodComponent(MeshType * _mesh, DiffuseTexType * _dt, tiny::draw::RGBTexture2D * _nt) : mesh(_mesh), diffuseTexture(_dt), normalTexture(_nt) {}
+				VegetationLodComponent(MeshType * _mesh, tiny::draw::TextureInterface * _dt, tiny::draw::RGBTexture2D * _nt) : mesh(_mesh), diffuseTexture(_dt), normalTexture(_nt) {}
 
 				void freeAll(void)
 				{
@@ -57,15 +57,12 @@ namespace ch
 				int maxObjectsRendered;
 				float maxRadius;
 				bool addedToTiledHorde;
-				std::vector< VegetationLodComponent<MeshType, tiny::draw::RGBTexture2D> > lodComponents;
-				std::vector< VegetationLodComponent<MeshType, tiny::draw::RGBATexture2D> > lodComponentsAlpha;
+				std::vector< VegetationLodComponent<MeshType> > lodComponents;
 
 				VegetationTiledLod(const int & _mor, const float & _mr) : maxObjectsRendered(_mor), maxRadius(_mr), addedToTiledHorde(false) {}
 
-				void addLodComponent(MeshType * _mesh, tiny::draw::RGBTexture2D * _dt, tiny::draw::RGBTexture2D * _nt)
-				{ lodComponents.push_back( VegetationLodComponent<MeshType, tiny::draw::RGBTexture2D>(_mesh,_dt,_nt) ); }
-				void addLodComponent(MeshType * _mesh, tiny::draw::RGBATexture2D * _dt, tiny::draw::RGBTexture2D * _nt)
-				{ lodComponentsAlpha.push_back( VegetationLodComponent<MeshType, tiny::draw::RGBATexture2D>(_mesh,_dt,_nt) ); }
+				void addLodComponent(MeshType * _mesh, tiny::draw::TextureInterface * _dt, tiny::draw::RGBTexture2D * _nt)
+				{ lodComponents.push_back( VegetationLodComponent<MeshType>(_mesh,_dt,_nt) ); }
 
 				/** Once all mesh/texture combinations for this particular LOD are known, add them all at once to the tiled horde. */
 				void addToTiledHorde(tiny::draw::TiledHorde * tiledHorde)
@@ -73,7 +70,6 @@ namespace ch
 					if(addedToTiledHorde) return; // should not add more than once, TiledHorde doesn't ignore duplicates
 					std::vector<MeshType*> meshes;
 					for(unsigned int i = 0; i < lodComponents.size(); i++) meshes.push_back(lodComponents[i].mesh);
-					for(unsigned int i = 0; i < lodComponentsAlpha.size(); i++) meshes.push_back(lodComponentsAlpha[i].mesh);
 					tiledHorde->addLOD(meshes, maxRadius);
 					addedToTiledHorde = true;
 				}
@@ -81,7 +77,6 @@ namespace ch
 				void freeComponents(void)
 				{
 					for(unsigned int i = 0; i < lodComponents.size(); i++) lodComponents[i].freeAll();
-					for(unsigned int i = 0; i < lodComponentsAlpha.size(); i++) lodComponentsAlpha[i].freeAll();
 				}
 
 				/** Calculate the max allowed density of this LOD. */
@@ -112,14 +107,12 @@ namespace ch
 					iconLod.clear();
 				}
 
-				template <typename DiffuseTexType>
-				void addLOD(const int & _mor, const float & _mr, tiny::draw::StaticMeshHorde * _mesh, DiffuseTexType * _dt, tiny::draw::RGBTexture2D * _nt = 0)
+				void addLOD(const int & _mor, const float & _mr, tiny::draw::StaticMeshHorde * _mesh, tiny::draw::TextureInterface * _dt, tiny::draw::RGBTexture2D * _nt = 0)
 				{
 					if(meshLod.find(_mr) == meshLod.end()) meshLod.insert( std::make_pair(_mr, VegetationTiledLod<tiny::draw::StaticMeshHorde>(_mor, _mr) ) );
 					meshLod.find(_mr)->second.addLodComponent(_mesh, _dt, _nt);
 				}
-				template <typename DiffuseTexType>
-				void addLOD(const int & _mor, const float & _mr, tiny::draw::WorldIconHorde * _mesh, DiffuseTexType * _dt, tiny::draw::RGBTexture2D * _nt = 0)
+				void addLOD(const int & _mor, const float & _mr, tiny::draw::WorldIconHorde * _mesh, tiny::draw::TextureInterface * _dt, tiny::draw::RGBTexture2D * _nt = 0)
 				{
 					if(iconLod.find(_mr) == iconLod.end()) iconLod.insert( std::make_pair(_mr, VegetationTiledLod<tiny::draw::WorldIconHorde>(_mor, _mr) ) );
 					iconLod.find(_mr)->second.addLodComponent(_mesh, _dt, _nt);
