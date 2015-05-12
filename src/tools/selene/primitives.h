@@ -111,6 +111,11 @@ inline unsigned int _check_get(_id<unsigned int>, lua_State *l, const int index)
 #endif
 }
 
+/* Takenu-added. */
+inline double _check_get(_id<float>, lua_State *l, const int index) {
+    return (float)luaL_checknumber(l, index);
+}
+
 inline lua_Number _check_get(_id<lua_Number>, lua_State *l, const int index) {
     return luaL_checknumber(l, index);
 }
