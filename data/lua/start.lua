@@ -7,11 +7,19 @@ end
 
 function loadobj(path)
 	loadscr(path)
+--	print("function will be: ","function getfunc() return " .. string.gsub(string.sub(path,1,string.find(path,'.lua')-1),'/','_') .. " end")
 	local h = assert(load("function getfunc() return " .. string.gsub(string.sub(path,1,string.find(path,'.lua')-1),'/','_') .. " end"))
 	h()
 	local func = getfunc()
-	getfunc = nil
 	func(path)
+	getfunc = nil
+end
+
+function findprefix(path)
+	local prefix = ""
+	local s = path;
+	while string.find(s,'/') do prefix, s = prefix .. string.sub(s,1,string.find(s,'/')), string.sub(s,string.find(s,'/')+1,-1) end
+	return prefix
 end
 
 -- Keep all loaded objects in a table. Objects whose identifier (<path>::<name>)
@@ -32,5 +40,6 @@ end
 -- The startup of Lua as called from the main executable.
 function start()
 	loadscr("veg/load.lua"); load_veg()
+	loadscr("sky/load.lua"); load_sky()
 end
 

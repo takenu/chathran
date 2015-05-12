@@ -71,6 +71,7 @@ namespace ch
 				void registerLuaFunctions(void)
 				{
 					vegManager.registerLuaFunctions(luaState);
+					skyManager.registerLuaFunctions(luaState);
 				}
 
 				~Game(void)

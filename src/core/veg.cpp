@@ -16,7 +16,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <cassert>
-#include <functional>
 
 #include <config.h>
 
@@ -29,7 +28,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "veg.hpp"
 
 using namespace ch::core;
-using namespace std::placeholders; // for std::bind with arguments
 
 void VegManager::update(double )
 {
@@ -42,7 +40,7 @@ void VegManager::update(double )
 	}
 }
 
-void VegManager::addLOD(std::string name, double _tileSize, std::string meshLoc, std::string difTexLoc, bool alphaChannel, std::string normTexLoc, int maxObjects, double maxRange)
+void VegManager::addLOD(std::string name, float _tileSize, std::string meshLoc, std::string difTexLoc, bool alphaChannel, std::string normTexLoc, int maxObjects, float maxRange)
 {
 	std::cout << " call: name= "<<name<<" tilesize= "<<_tileSize<<" mesh= "<<meshLoc<<" diftex= "<<difTexLoc<<" normtex= "<<normTexLoc<<std::endl;
 	if(difTexLoc == "") { std::cerr << " Warning: VegManager::addLOD() doesn't have a texture for '"<<name<<"'. Skipping object creation. "<<std::endl; return; }

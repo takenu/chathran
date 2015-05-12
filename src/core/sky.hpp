@@ -22,6 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "interface/render.hpp"
 
+namespace sel { class State; }
+
 namespace ch
 {
 	namespace core
@@ -37,14 +39,14 @@ namespace ch
 				float sunAngle;
 				tiny::draw::effects::SunSky *sunSky;
 
-				void setup(void);
 				void cleanup(void);
+
+				void loadSkyBox(float cubeMeshSize, int boxTexSize, std::string gradTex);
 			public:
 				SkyManager(intf::RenderInterface * _renderer) :
 					renderer(_renderer),
 					skyBox(0), skyBoxTexture(0), skyGradientTexture(0), sunAngle(-0.4f), sunSky(0)
 				{
-					setup();
 				}
 
 				~SkyManager(void) { cleanup(); }
@@ -58,6 +60,8 @@ namespace ch
 					sunAngle = angle;
 					sunSky->setSun(tiny::vec3(sin(sunAngle), cos(sunAngle), 0.5f));
 				}
+
+				void registerLuaFunctions(sel::State & luaState);
 		};
 	}
 }

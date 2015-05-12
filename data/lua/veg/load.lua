@@ -23,9 +23,7 @@ function TiledVegObject:new(o)
 	return o
 end
 function TiledVegObject:collectArgs(path)
-	local prefix = ""
-	local s = path;
-	while string.find(s,'/') do prefix, s = prefix .. string.sub(s,1,string.find(s,'/')), string.sub(s,string.find(s,'/')+1,-1) end
+	local prefix = findprefix(path)
 	return path .. "::" .. self.name, self.tileSize, self.mesh == "" and "" or prefix .. self.mesh, prefix .. self.diftex, self.alpha,
 			self.normtex == "" and "" or prefix .. self.normtex, self.maxobj, self.range
 end

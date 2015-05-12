@@ -57,7 +57,7 @@ namespace ch
 				}
 
 				/** Add a LOD for a type of vegetation. Use 'double' for tileSize/maxRange because Lua likes that. */
-				void addLOD(std::string name, double tileSize, std::string meshLoc, std::string difTexLoc, bool alphaChannel, std::string normTexLoc, int maxObjects, double maxRange);
+				void addLOD(std::string name, float tileSize, std::string meshLoc, std::string difTexLoc, bool alphaChannel, std::string normTexLoc, int maxObjects, float maxRange);
 				/** Add all LODs to their TiledHordes. */
 				void addToTiledHorde(void) { for(std::map<std::string, veg::VegetationTiledHorde*>::iterator it = hordemap.begin(); it != hordemap.end(); it++) it->second->addToTiledHorde(); }
 				/** Register Lua functions. */

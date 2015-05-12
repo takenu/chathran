@@ -20,30 +20,38 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <config.h>
 
+#include "../tools/selene.h"
+
 #include "sky.hpp"
 
 using namespace ch::core;
 
-void SkyManager::setup(void)
+void SkyManager::loadSkyBox(float cubeMeshSize, int boxTexSize, std::string gradTex)
 {
+	if(cubeMeshSize < 100 || boxTexSize < 1 || gradTex == "") { std::cerr << " loadSkyBox called from Lua with invalid args: "<<cubeMeshSize<<", "<<boxTexSize<<", "<<gradTex<<"."<<std::endl; return;}
 	//Create sky (a simple cube containing the world).
-	skyBox = new tiny::draw::StaticMesh(tiny::mesh::StaticMesh::createCubeMesh(-1.0e6));
-	skyBoxTexture = new tiny::draw::RGBTexture2D(tiny::img::Image::createSolidImage(16), tiny::draw::tf::filter);
+	skyBox = new tiny::draw::StaticMesh(tiny::mesh::StaticMesh::createCubeMesh(-1.0*cubeMeshSize));
+	skyBoxTexture = new tiny::draw::RGBTexture2D(tiny::img::Image::createSolidImage(boxTexSize), tiny::draw::tf::filter);
 	skyBox->setDiffuseTexture(*skyBoxTexture);
 	
 	//Render using a more advanced shading model.
 	sunSky = new tiny::draw::effects::SunSky();
-	skyGradientTexture = new tiny::draw::RGBATexture2D(tiny::img::io::readImage(DATA_DIRECTORY + "img/sky/sky.png"));
+	skyGradientTexture = new tiny::draw::RGBATexture2D(tiny::img::io::readImage(DATA_DIRECTORY + "img/" + gradTex));
 	sunSky->setSkyTexture(*skyGradientTexture);
 
 	renderer->addWorldRenderable(skyBox);
 	renderer->addScreenRenderable(sunSky,false,false);
 }
 
+void SkyManager::registerLuaFunctions(sel::State & luaState)
+{
+	luaState["sky"].SetObj(*this,
+			"loadSkyBox", &SkyManager::loadSkyBox);
+}
+
 void SkyManager::cleanup(void)
 {
 	delete sunSky;
-	
 	delete skyBox;
 	delete skyBoxTexture;
 	delete skyGradientTexture;	
