@@ -8,6 +8,7 @@ FIND_PATH(SELENE_INCLUDE_DIR NAMES selene.h
   ${PROJECT_BINARY_DIR}/include
   ${PROJECT_SOURCE_DIR}/include
   ${PROJECT_SOURCE_DIR}/../selene/include/                # this one added
+  ${PROJECT_SOURCE_DIR}/../Selene/include/                # this one added
   ENV CPATH
   /usr/include
   /usr/local/include
