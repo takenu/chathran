@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <tiny/mesh/io/staticmesh.h>
 #include <tiny/img/io/image.h>
 
-#include "../tools/selene.h"
+#include <selene.h>
 
 #include "veg.hpp"
 
