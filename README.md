@@ -38,6 +38,17 @@ dependency is anticipated to decline in the future, and once
 tiny-game-engine achieves a mature release cycle Chathran will be based
 off specific releases.
 
+#### Known linking issue
+
+Linking of Chathran on Linux may fail with the following error:
+* undefined reference to symbol 'dlclose@@GLIBC_2.2.5'
+This is a Lua error that can randomly result even if you compile
+everything properly. Chathran already compiles with the option '-ldl'
+since this *usually* solves the problem, but even then Lua may continue
+to have the nasty habit of not linking. You can try compiling Lua using
+"make posix test" rather than "make linux test" which is known to solve
+this issue in some instances.
+
 ## Licensing
 
 Chathran is available under a GNU GPL v3 license (or any later license, at
