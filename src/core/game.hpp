@@ -82,6 +82,7 @@ namespace ch
 				void composeWorld(void)
 				{
 					luaState.Load(DATA_DIRECTORY + "lua/start.lua");
+					luaState["setpath"](DATA_DIRECTORY);
 					luaState["start"]();
 
 					vegManager.addToTiledHorde(); // add all LODs to their TiledHorde's

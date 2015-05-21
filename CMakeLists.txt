@@ -30,6 +30,7 @@ find_package(Assimp REQUIRED)
 find_package(Lua REQUIRED)
 find_package(Selene REQUIRED)
 find_package(Tinygame REQUIRED)
+find_package(ChathranGame REQUIRED)
 
 configure_file(config.h.cmake ${CMAKE_BINARY_DIR}/config.h)
 

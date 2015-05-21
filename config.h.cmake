@@ -4,7 +4,7 @@
 
 #define SCREEN_WIDTH 1620
 #define SCREEN_HEIGHT 800
-#define DATA_DIRECTORY std::string("${CHATHRAN_SOURCE_DIR}/data/")
+#define DATA_DIRECTORY std::string("${CHGAME_INCLUDE_DIR}/")
 
 #ifndef NDEBUG
 #cmakedefine DEBUG
